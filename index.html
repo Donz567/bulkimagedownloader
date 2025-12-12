@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HD Image Processor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4f46e5; /* Indigo */
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc; /* Slate 50 */
+            --card-bg: #ffffff;
+            --text-main: #1e293b; /* Slate 800 */
+            --text-muted: #64748b; /* Slate 500 */
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+        }
+
+        /* --- LAYOUT GRID --- */
+        .layout-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 60px;
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            justify-content: center;
+        }
+
+        /* 1. LEFT SIDEBAR */
+        .sidebar-left {
+            flex: 1;
+            max-width: 280px;
+            min-width: 250px;
+            padding-top: 20px;
+        }
+
+        /* 2. CENTER CARD */
+        .container-center {
+            flex: 0 0 480px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        /* 3. RIGHT SPACER */
+        .sidebar-right {
+            flex: 1;
+            max-width: 280px;
+            min-width: 250px;
+            visibility: hidden;
+        }
+
+        /* --- SIDEBAR STYLING --- */
+        .sidebar-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .note-card {
+            background: #eff6ff; /* Light Blue */
+            border: 1px solid #dbeafe;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .note-card h4 {
+            margin: 0 0 8px 0;
+            color: var(--primary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .note-card p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .steps-list li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .steps-list li::before {
+            content: "•";
+            color: var(--primary);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .steps-list strong { color: var(--text-main); font-weight: 600; }
+
+        /* --- FORM STYLING --- */
+        h2 {
+            margin-top: 0;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .input-group { margin-bottom: 20px; }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            font-size: 13px;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            background-color: #fcfcfc;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+        }
+        
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            background-color: #fff;
+        }
+
+        textarea {
+            height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .row { display: flex; gap: 20px; }
+        .row .input-group { flex: 1; }
+
+        /* --- BUTTON --- */
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active { transform: translateY(0); }
+
+        button:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* --- STATUS AREA --- */
+        .status-area {
+            margin-top: 25px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 100px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 100px;
+            transition: width 0.3s ease;
+        }
+        
+        #log {
+            font-size: 12px;
+            color: var(--text-muted);
+            max-height: 100px;
+            overflow-y: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            font-family: monospace;
+        }
+
+        /* Scrollbar Styling */
+        #log::-webkit-scrollbar { width: 6px; }
+        #log::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+
+        /* Mobile Responsive */
+        @media (max-width: 1000px) {
+            .layout-wrapper { flex-direction: column-reverse; align-items: center; gap: 30px; padding: 20px; }
+            .sidebar-right { display: none; }
+            .sidebar-left { max-width: 480px; width: 100%; padding-top: 0; }
+            .container-center { width: 100%; max-width: 480px; flex: none; padding: 30px; }
+            .row { flex-direction: column; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="layout-wrapper">
+        
+        <div class="sidebar-left">
+            <div class="note-card">
+                <h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    System Specs
+                </h4>
+                <p>Images are automatically processed to <strong>2000x2000 px</strong> (HD) on a pure white background.</p>
+            </div>
+
+            <div class="sidebar-title">Instructions</div>
+            <ul class="steps-list">
+                <li><strong>Define Metadata:</strong> Enter the Style Name and Color Variant.</li>
+                <li><strong>Input Source:</strong> Paste direct image links (one per line).</li>
+                <li><strong>Launch:</strong> Click "Start Processing".</li>
+                <li><strong>Permissions:</strong> If prompted by the browser to save multiple files, select <strong>"Allow"</strong>.</li>
+            </ul>
+        </div>
+
+        <div class="container-center">
+            <h2>Image Processor</h2>
+            <div class="subtitle">Bulk resize and standardize your product assets.</div>
+            
+            <div class="row">
+                <div class="input-group">
+                    <label for="style">Style Name</label>
+                    <input type="text" id="style" placeholder="e.g. PoloShirt">
+                </div>
+        
+                <div class="input-group">
+                    <label for="color">Color Variant</label>
+                    <input type="text" id="color" placeholder="e.g. NavyBlue">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="urls">Source URLs</label>
+                <textarea id="urls" placeholder="https://site.com/image1.jpg&#10;https://site.com/image2.jpg"></textarea>
+            </div>
+
+            <button id="processBtn" onclick="startProcessing()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Start Processing
+            </button>
+
+            <div class="status-area">
+                <div class="progress-header">
+                    <span id="statusText">System Ready</span>
+                    <span id="percentText">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div id="log">Logs will appear here...</div>
+            </div>
+        </div>
+
+        <div class="sidebar-right"></div>
+
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <script>
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function startProcessing() {
+            const btn = document.getElementById('processBtn');
+            const style = document.getElementById('style').value.trim();
+            const color = document.getElementById('color').value.trim();
+            const urlsText = document.getElementById('urls').value;
+            const statusText = document.getElementById('statusText');
+            const percentText = document.getElementById('percentText');
+            const progressBar = document.getElementById('progressBar');
+            const log = document.getElementById('log');
+
+            if (!style || !color) {
+                alert("Please enter both a Style and a Color.");
+                return;
+            }
+
+            const urlList = urlsText.split('\n').map(u => u.trim()).filter(u => u !== '');
+            if (urlList.length === 0) {
+                alert("Please paste at least one image URL.");
+                return;
+            }
+
+            // Lock UI
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg> Processing...`;
+            progressBar.style.width = '0%';
+            log.innerHTML = '';
+            
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const targetSize = 2000;
+
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (let i = 0; i < urlList.length; i++) {
+                const url = urlList[i];
+                const number = i + 1;
+                
+                const percent = Math.round(((i) / urlList.length) * 100);
+                progressBar.style.width = `${percent}%`;
+                percentText.innerText = `${percent}%`;
+                statusText.innerText = `Processing ${number}/${urlList.length}`;
+
+                try {
+                    const blob = await processImage(url, ctx, targetSize);
+                    
+                    if (blob) {
+                        const safeStyle = style.replace(/[^a-z0-9]/gi, '_');
+                        const safeColor = color.replace(/[^a-z0-9]/gi, '_');
+                        const filename = `${safeStyle}_${safeColor}_${number}.jpg`;
+                        
+                        triggerDownload(blob, filename);
+                        
+                        successCount++;
+                        log.innerHTML += `<div style="color:var(--success); margin-bottom:4px;">✔ Downloaded: ${filename}</div>`;
+                        
+                        // 800ms delay to prevent browser block
+                        await wait(800); 
+
+                    } else {
+                        failCount++;
+                        log.innerHTML += `<div style="color:var(--error); margin-bottom:4px;">❌ Failed: Image ${number}</div>`;
+                    }
+                } catch (err) {
+                    failCount++;
+                    log.innerHTML += `<div style="color:var(--error); margin-bottom:4px;">❌ Error: ${err.message}</div>`;
+                }
+                
+                log.scrollTop = log.scrollHeight;
+            }
+
+            progressBar.style.width = '100%';
+            percentText.innerText = '100%';
+            statusText.innerText = 'Completed';
+            
+            // Add final summary to log
+            log.innerHTML += `<div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ccc; font-weight:bold;">Result: ${successCount} Success, ${failCount} Failed.</div>`;
+            log.scrollTop = log.scrollHeight;
+
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Start Processing`;
+        }
+
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function processImage(url, ctx, targetSize) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous'; 
+
+                img.onload = function () {
+                    // White Background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, targetSize, targetSize);
+
+                    // Resize Logic (Contain)
+                    const scale = Math.min(targetSize / img.width, targetSize / img.height);
+                    const drawWidth = img.width * scale;
+                    const drawHeight = img.height * scale;
+                    const offsetX = (targetSize - drawWidth) / 2;
+                    const offsetY = (targetSize - drawHeight) / 2;
+
+                    ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+                    document.getElementById('canvas').toBlob((blob) => {
+                        resolve(blob);
+                    }, 'image/jpeg', 0.95);
+                };
+
+                img.onerror = function () {
+                    resolve(null);
+                };
+
+                img.src = url;
+            });
+        }
+    </script>
+</body>
+</html>
